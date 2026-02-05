@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(ls:*)",
+      "Bash(npx eslint:*)",
+      "Bash(node -c:*)",
+      "Bash(git -C client status)",
+      "Bash(python3:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm start)"
+    ]
+  }
+}

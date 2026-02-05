@@ -1,0 +1,181 @@
+.setup-guide {
+  background-color: #fefcf5;
+  border-bottom: 1px solid #f0e8d0;
+  padding: 12px 16px;
+  margin: 0;
+  transition: all 0.2s ease;
+}
+
+.setup-guide.collapsed {
+  background-color: #f5faf7;
+  border-bottom-color: #d0e8dc;
+  padding: 8px 16px;
+}
+
+.setup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.setup-guide.collapsed .setup-header {
+  margin-bottom: 0;
+}
+
+.setup-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expand-icon {
+  font-size: 10px;
+  color: #9b9b9b;
+  transition: transform 0.2s ease;
+}
+
+.setup-header h3 {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0;
+  color: #2c2c2c;
+  letter-spacing: -0.01em;
+}
+
+.status-badge {
+  padding: 3px 10px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.status-badge.connected {
+  background-color: #e8f5ed;
+  color: #2d7a4a;
+}
+
+.connection-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.connection-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.connection-info {
+  flex: 1;
+}
+
+.connection-info h4 {
+  font-size: 13px;
+  font-weight: 400;
+  margin: 0 0 4px 0;
+  color: #2c2c2c;
+}
+
+.status-text {
+  font-size: 11px;
+  color: #9b9b9b;
+  margin: 0;
+}
+
+.connected-text {
+  color: #2d7a4a;
+  font-weight: 400;
+}
+
+.connected-accounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.account-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 2px;
+  font-size: 11px;
+  color: #6b6b6b;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: #d14343;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.remove-btn:hover {
+  background-color: #d14343;
+  color: white;
+}
+
+.connect-btn {
+  background-color: #2c2c2c;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.connect-btn:hover {
+  background-color: #1a1a1a;
+}
+
+.connect-btn:active {
+  background-color: #0f0f0f;
+}
+
+@media (max-width: 768px) {
+  .setup-guide {
+    margin: 8px;
+    padding: 10px 12px;
+  }
+
+  .connection-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .connect-btn {
+    width: 100%;
+  }
+}
