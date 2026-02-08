@@ -12,7 +12,12 @@
       "Bash(npm start)",
       "Bash(find:*)",
       "Bash(lsof:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(cat <<'EOF'\n# Undo the local merge\ngit reset --hard HEAD~1\n\n# Push feature branch to GitHub\ngit push origin feature/create-todoist-tasks\n\n# Then create PR on GitHub web interface\nEOF)",
+      "Bash(git push:*)",
+      "Bash(git branch:*)",
+      "Bash(cat:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

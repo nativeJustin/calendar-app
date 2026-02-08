@@ -4,6 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import MobileWeekView from './MobileWeekView'
+import EventCreationForm from './EventCreationForm'
 import axios from 'axios'
 import './Calendar.css'
 
@@ -31,7 +32,7 @@ const ZOOM_PRESETS = {
   }
 }
 
-function Calendar({ events, loading, error, onTaskDrop, onEventsChange }) {
+function Calendar({ events, loading, error, onTaskDrop, onEventsChange, onCreateEvent, googleAccounts }) {
   console.log('Calendar: Component rendering, isMobile:', window.innerWidth <= 768)
 
   const calendarRef = useRef(null)
@@ -259,6 +260,13 @@ function Calendar({ events, loading, error, onTaskDrop, onEventsChange }) {
   // Use FullCalendar on desktop
   return (
     <div className="calendar-container" data-zoom={zoomPreset}>
+      <div className="calendar-header">
+        <EventCreationForm
+          googleAccounts={googleAccounts}
+          onCreateEvent={onCreateEvent}
+        />
+      </div>
+
       <div className="calendar-zoom-controls">
         {Object.entries(ZOOM_PRESETS).map(([key, preset]) => (
           <button

@@ -7,6 +7,12 @@
   flex-direction: column;
 }
 
+.calendar-header {
+  padding: 1rem;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
 .calendar-zoom-controls {
   display: flex;
   gap: 4px;

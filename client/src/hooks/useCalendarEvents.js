@@ -87,7 +87,17 @@ export function useCalendarEvents() {
     fetchEvents()
   }, [fetchEvents])
 
-  return { events, loading, error, refetch: fetchEvents }
+  const createEvent = useCallback(async (eventData) => {
+    try {
+      const response = await axios.post('/api/calendar/events', eventData)
+      return response.data.event
+    } catch (err) {
+      console.error('Error creating event:', err)
+      throw err
+    }
+  }, [])
+
+  return { events, loading, error, refetch: fetchEvents, createEvent }
 }
 
 // Generate consistent colors for different accounts
