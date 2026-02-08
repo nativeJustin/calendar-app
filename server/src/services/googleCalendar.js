@@ -190,6 +190,63 @@ class GoogleCalendarService {
       throw error;
     }
   }
+
+  async createEvent(accountId, eventData) {
+    try {
+      const tokens = await tokenStore.getGoogleTokens(accountId);
+      if (!tokens) {
+        throw new Error('No tokens found for account');
+      }
+
+      const oauth2Client = this.createOAuth2Client();
+      oauth2Client.setCredentials(tokens);
+
+      // Set up token refresh handler
+      oauth2Client.on('tokens', async (newTokens) => {
+        if (newTokens.refresh_token) {
+          tokens.refresh_token = newTokens.refresh_token;
+        }
+        tokens.access_token = newTokens.access_token;
+        await tokenStore.saveGoogleTokens(accountId, tokens, tokens.email);
+      });
+
+      const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+      // Build event payload
+      const event = {
+        summary: eventData.title,
+        start: {
+          dateTime: eventData.startTime,
+          timeZone: eventData.timeZone
+        },
+        end: {
+          dateTime: eventData.endTime,
+          timeZone: eventData.timeZone
+        }
+      };
+
+      // Add optional description
+      if (eventData.description) {
+        event.description = eventData.description;
+      }
+
+      console.log('Creating event:', event);
+
+      // Insert the event into primary calendar
+      const response = await calendar.events.insert({
+        calendarId: 'primary',
+        requestBody: event
+      });
+
+      console.log('Successfully created event:', response.data.id);
+      return response.data;
+    } catch (error) {
+      console.error(`Error creating event for account ${accountId}:`);
+      console.error('Error message:', error.message);
+      console.error('Error response:', error.response?.data);
+      throw error;
+    }
+  }
 }
 
 export default new GoogleCalendarService();

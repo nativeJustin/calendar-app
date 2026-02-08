@@ -61,6 +61,56 @@ router.post('/calendar/events/:eventId/update', async (req, res) => {
   }
 });
 
+// Create new Google Calendar event
+router.post('/calendar/events', async (req, res) => {
+  try {
+    const { accountId, title, startTime, endTime, description, timeZone } = req.body;
+
+    // Validate required fields
+    if (!accountId) {
+      return res.status(400).json({ error: 'accountId is required' });
+    }
+    if (!title || title.trim() === '') {
+      return res.status(400).json({ error: 'Event title is required' });
+    }
+    if (!startTime) {
+      return res.status(400).json({ error: 'Start time is required' });
+    }
+    if (!endTime) {
+      return res.status(400).json({ error: 'End time is required' });
+    }
+    if (!timeZone) {
+      return res.status(400).json({ error: 'Timezone is required' });
+    }
+
+    // Validate that end time is after start time
+    if (new Date(endTime) <= new Date(startTime)) {
+      return res.status(400).json({ error: 'End time must be after start time' });
+    }
+
+    const eventData = {
+      title: title.trim(),
+      startTime,
+      endTime,
+      timeZone
+    };
+
+    // Add optional description
+    if (description && description.trim()) {
+      eventData.description = description.trim();
+    }
+
+    const newEvent = await googleCalendarService.createEvent(accountId, eventData);
+    res.json({ event: newEvent });
+  } catch (error) {
+    console.error('Error creating calendar event:', error);
+    res.status(500).json({
+      error: 'Failed to create event',
+      message: error.response?.data?.message || error.message
+    });
+  }
+});
+
 // Get Todoist tasks (filtered)
 router.get('/todoist/tasks', async (req, res) => {
   try {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import axios from 'axios'
 import Calendar from './components/Calendar'
 import TaskPanel from './components/TaskPanel'
 import SetupGuide from './components/SetupGuide'
@@ -9,9 +10,23 @@ import './App.css'
 function App() {
   const [showAllDayTasks, setShowAllDayTasks] = useState(false)
   const [showCompletedTasks, setShowCompletedTasks] = useState(false)
+  const [googleAccounts, setGoogleAccounts] = useState([])
 
-  const { events, loading: eventsLoading, error: eventsError, refetch: refetchEvents } = useCalendarEvents()
+  const { events, loading: eventsLoading, error: eventsError, refetch: refetchEvents, createEvent } = useCalendarEvents()
   const { tasks, projects, sections, loading: tasksLoading, error: tasksError, refetch: refetchTasks, scheduleTask, unscheduleTask, createTask } = useTodoistTasks()
+
+  // Fetch Google accounts on mount
+  useEffect(() => {
+    const fetchGoogleAccounts = async () => {
+      try {
+        const response = await axios.get('/api/google/accounts')
+        setGoogleAccounts(response.data.accounts || [])
+      } catch (error) {
+        console.error('Error fetching Google accounts:', error)
+      }
+    }
+    fetchGoogleAccounts()
+  }, [])
 
   // Expose unschedule function globally for Calendar component
   useEffect(() => {
@@ -60,6 +75,17 @@ function App() {
     }
   }, [createTask, refetchTasks, refetchEvents])
 
+  const handleEventCreate = useCallback(async (eventData) => {
+    try {
+      await createEvent(eventData)
+      await refetchEvents() // Refresh calendar to show new event
+      await refetchTasks()  // Refresh tasks in case of datetime conflicts
+    } catch (error) {
+      console.error('Failed to create event:', error)
+      throw error // Let EventCreationForm handle error display
+    }
+  }, [createEvent, refetchEvents, refetchTasks])
+
   const handleEventsChange = useCallback(async () => {
     await refetchEvents()
     await refetchTasks()
@@ -94,6 +120,8 @@ function App() {
           error={eventsError}
           onTaskDrop={handleTaskDrop}
           onEventsChange={handleEventsChange}
+          onCreateEvent={handleEventCreate}
+          googleAccounts={googleAccounts}
         />
       </div>
     </div>
