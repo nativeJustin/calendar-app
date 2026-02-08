@@ -229,3 +229,119 @@
     font-size: 11px;
   }
 }
+
+/* Create Task Section */
+.create-task-section {
+  margin-bottom: 12px;
+}
+
+.create-task-btn {
+  width: 100%;
+  background-color: #2c2c2c;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  text-align: center;
+}
+
+.create-task-btn:hover {
+  background-color: #1a1a1a;
+}
+
+.create-task-btn:active {
+  background-color: #0f0f0f;
+}
+
+.create-task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.task-input,
+.task-select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e8e8e8;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: inherit;
+  color: #2c2c2c;
+  background-color: #ffffff;
+  transition: border-color 0.15s ease;
+}
+
+.task-input:focus,
+.task-select:focus {
+  outline: none;
+  border-color: #6b6b6b;
+}
+
+.task-input::placeholder {
+  color: #9b9b9b;
+}
+
+.task-select {
+  cursor: pointer;
+}
+
+.form-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #d14343;
+  padding: 8px 10px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.create-submit-btn {
+  background-color: #2c2c2c;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.create-submit-btn:hover:not(:disabled) {
+  background-color: #1a1a1a;
+}
+
+.create-submit-btn:active:not(:disabled) {
+  background-color: #0f0f0f;
+}
+
+.create-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mobile responsive for create task form */
+@media (max-width: 768px) {
+  .task-input,
+  .task-select {
+    font-size: 11px;
+    padding: 7px 9px;
+  }
+}

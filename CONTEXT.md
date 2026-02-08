@@ -39,6 +39,12 @@ This is a **Master Calendar** web application that integrates multiple Google Ca
 
 #### Task Management
 - **Schedule Inbox** (left panel): Shows all Todoist tasks
+- **Task Creation**: Create new Todoist tasks directly from the UI
+  - Collapsible "+ Create Task" form in Schedule Inbox header
+  - Fields: Title (required), Due Date (natural language), Priority (P1-P4), Project, Section
+  - Smart section filtering: Section dropdown only shows sections for selected project
+  - Auto-closes after successful creation
+  - Inline validation and error handling
 - **Client-Side Filtering**:
   - Toggle to show/hide all-day tasks
   - Toggle to show/hide completed tasks
@@ -96,6 +102,7 @@ This is a **Master Calendar** web application that integrates multiple Google Ca
 
 2. **TaskPanel** (`components/TaskPanel.jsx`) - "Schedule Inbox"
    - Displays Todoist tasks in sidebar
+   - **Create Task Form**: Collapsible form for creating new tasks with title, due date, priority, project, and section
    - Filter controls for all-day and completed tasks
    - Draggable task items
    - Drop zone for unscheduling tasks (drags back from calendar)
@@ -130,10 +137,11 @@ This is a **Master Calendar** web application that integrates multiple Google Ca
    - Returns: `{ events, loading, error, refetch }`
 
 2. **useTodoistTasks** (`hooks/useTodoistTasks.js`)
-   - Fetches all Todoist tasks (unfiltered)
+   - Fetches all Todoist tasks, projects, and sections (unfiltered)
    - Provides `scheduleTask(taskId, datetime)` function
    - Provides `unscheduleTask(taskId)` function
-   - Returns: `{ tasks, loading, error, refetch, scheduleTask, unscheduleTask }`
+   - Provides `createTask(taskData)` function
+   - Returns: `{ tasks, projects, sections, loading, error, refetch, scheduleTask, unscheduleTask, createTask }`
 
 ### Backend (Node.js + Express)
 
@@ -164,6 +172,9 @@ This is a **Master Calendar** web application that integrates multiple Google Ca
 3. **API Routes** (`routes/api.js`)
    - `GET /api/calendar/events?startDate=X&endDate=Y` - Fetches events from all Google accounts
    - `GET /api/todoist/tasks` - Fetches all Todoist tasks
+   - `GET /api/todoist/projects` - Fetches all Todoist projects
+   - `GET /api/todoist/sections` - Fetches all Todoist sections
+   - `POST /api/todoist/tasks` - Creates new task with content, due_string, priority, project_id, section_id
    - `POST /api/todoist/tasks/:id/schedule` - Sets task due date/time
    - `POST /api/todoist/tasks/:id/unschedule` - Removes task due date
 
@@ -179,6 +190,9 @@ This is a **Master Calendar** web application that integrates multiple Google Ca
 
 2. **todoistService.js**
    - `getTasks()` - Fetches all tasks from Todoist REST API v2
+   - `getProjects()` - Fetches all projects from Todoist
+   - `getSections()` - Fetches all sections from Todoist
+   - `createTask(taskData)` - Creates new task with content, due_string, priority, project_id, section_id
    - `updateTaskDueDate(taskId, dueDate)` - Sets due_datetime on task
    - `clearTaskDueDate(taskId)` - Sets due_string to "no date" to remove due date
    - Uses API token from environment variable (not OAuth)
@@ -432,6 +446,7 @@ calendar-app/
 ### What Works ✅
 - **Google Calendar multi-account integration** - Fully functional, OAuth flow working
 - **Todoist API integration** - Connected and syncing
+- **Task creation** - Create new Todoist tasks directly from UI with title, due date, priority, project, and section
 - **Drag-and-drop scheduling** - From inbox to calendar works perfectly
 - **Drag-and-drop rescheduling** - Move tasks on calendar to different times
 - **Drag-and-drop unscheduling** - Drag back to inbox to remove due dates
@@ -447,7 +462,6 @@ calendar-app/
 
 ### Limitations
 - **Token Storage**: Uses file-based storage (`tokens.json`) - suitable for personal use, not production
-- **No Task Creation**: Can only schedule existing Todoist tasks, can't create new ones from calendar
 - **No Recurring Events**: Doesn't handle recurring task scheduling
 - **1-Hour Duration**: All scheduled tasks show as 1-hour blocks (hardcoded)
 - **Desktop Drag-to-Inbox**: Relies on detecting drop coordinates, may not be 100% reliable in all browsers
@@ -462,17 +476,18 @@ calendar-app/
 
 ### Potential Improvements
 - Add task duration editing
-- Create tasks directly from calendar
-- Support for Todoist projects/sections in UI
+- Add task description/notes field to creation form
+- Add label/tag support to task creation
 - Better error messages and retry logic
 - Database instead of file-based storage
 - User authentication
 - Dark mode
 - Desktop notifications
-- Keyboard shortcuts
+- Keyboard shortcuts (e.g., Ctrl+K to open task creation)
 - Batch operations (schedule multiple tasks at once)
 - Calendar color customization
 - Export functionality
+- Task templates for recurring patterns
 
 ## Development Workflow
 
@@ -897,4 +912,44 @@ If you want to deploy this for multiple users:
     - Verified with grep/sed that changes persisted correctly
   - Status: ✅ **FULLY FIXED** - Drag-and-drop works perfectly
   - **Key Takeaway**: FullCalendar's external drag-and-drop requires explicit configuration - both `droppable={true}` AND `dropAccept` prop are necessary
+
+
+**Session 6** (2026-02-08):
+- ✅ **Task Creation Feature** - Create Todoist tasks directly from UI
+  - **Backend Implementation**:
+    - Added `getProjects()` method to todoistService.js to fetch all Todoist projects
+    - Added `getSections()` method to todoistService.js to fetch all Todoist sections
+    - Added `createTask(taskData)` method supporting content, due_string, priority, project_id, section_id
+    - Added GET `/api/todoist/projects` endpoint
+    - Added GET `/api/todoist/sections` endpoint
+    - Added POST `/api/todoist/tasks` endpoint with validation
+  - **Frontend Implementation**:
+    - Extended useTodoistTasks hook with projects and sections state
+    - Added fetchProjects() and fetchSections() methods to hook
+    - Added createTask() method to hook
+    - Created collapsible "+ Create Task" form in TaskPanel header
+    - Form includes: Title (required), Due Date (natural language), Priority (P1-P4), Project, Section
+    - Smart section filtering: Section dropdown only shows sections for selected project
+    - Section dropdown disabled until project is selected
+    - Project change resets section selection
+    - Auto-closes form after successful task creation (per user preference)
+    - Inline validation and error handling with error messages below form
+    - Smooth slideDown animation (0.2s) matching existing design patterns
+  - **UX Features**:
+    - Button text changes: "+ Create Task" ↔ "− Cancel"
+    - Loading state: "Creating..." button text during API call
+    - Form validation: Empty title shows "Task title is required" error
+    - Disabled state during creation prevents double submission
+    - Auto-focus on title input when form opens
+  - **Testing**:
+    - Backend tests passed: Successfully fetched 8 projects and 11 sections
+    - Successfully created test tasks with project_id and section_id
+    - Verified tasks appear correctly in Todoist app/website with correct project and section
+    - Confirmed smart filtering works: sections filter by selected project
+  - Status: ✅ **FULLY WORKING** - Task creation integrated seamlessly
+  - **Key Learnings**:
+    - Todoist REST API v2 accepts natural language for due_string (e.g., "tomorrow at 3pm")
+    - Smart filtering improves UX: only show relevant sections for selected project
+    - Form auto-close provides cleaner workflow than keeping form open
+    - Following existing patterns (SetupGuide's collapsible section) ensures UI consistency
 

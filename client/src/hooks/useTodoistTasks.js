@@ -3,6 +3,8 @@ import axios from 'axios'
 
 export function useTodoistTasks() {
   const [tasks, setTasks] = useState([])
+  const [projects, setProjects] = useState([])
+  const [sections, setSections] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -19,6 +21,24 @@ export function useTodoistTasks() {
       setError(err.response?.data?.message || err.message)
     } finally {
       setLoading(false)
+    }
+  }, [])
+
+  const fetchProjects = useCallback(async () => {
+    try {
+      const response = await axios.get('/api/todoist/projects')
+      setProjects(response.data.projects)
+    } catch (err) {
+      console.error('Error fetching projects:', err)
+    }
+  }, [])
+
+  const fetchSections = useCallback(async () => {
+    try {
+      const response = await axios.get('/api/todoist/sections')
+      setSections(response.data.sections)
+    } catch (err) {
+      console.error('Error fetching sections:', err)
     }
   }, [])
 
@@ -40,9 +60,21 @@ export function useTodoistTasks() {
     }
   }, [])
 
+  const createTask = useCallback(async (taskData) => {
+    try {
+      const response = await axios.post('/api/todoist/tasks', taskData)
+      return response.data.task
+    } catch (err) {
+      console.error('Error creating task:', err)
+      throw err
+    }
+  }, [])
+
   useEffect(() => {
     fetchTasks()
-  }, [fetchTasks])
+    fetchProjects()
+    fetchSections()
+  }, [fetchTasks, fetchProjects, fetchSections])
 
-  return { tasks, loading, error, refetch: fetchTasks, scheduleTask, unscheduleTask }
+  return { tasks, projects, sections, loading, error, refetch: fetchTasks, scheduleTask, unscheduleTask, createTask }
 }

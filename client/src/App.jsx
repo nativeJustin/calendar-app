@@ -11,7 +11,7 @@ function App() {
   const [showCompletedTasks, setShowCompletedTasks] = useState(false)
 
   const { events, loading: eventsLoading, error: eventsError, refetch: refetchEvents } = useCalendarEvents()
-  const { tasks, loading: tasksLoading, error: tasksError, refetch: refetchTasks, scheduleTask, unscheduleTask } = useTodoistTasks()
+  const { tasks, projects, sections, loading: tasksLoading, error: tasksError, refetch: refetchTasks, scheduleTask, unscheduleTask, createTask } = useTodoistTasks()
 
   // Expose unschedule function globally for Calendar component
   useEffect(() => {
@@ -49,6 +49,17 @@ function App() {
     }
   }, [unscheduleTask, refetchTasks, refetchEvents])
 
+  const handleTaskCreate = useCallback(async (taskData) => {
+    try {
+      await createTask(taskData)
+      await refetchTasks()
+      await refetchEvents() // Also refresh calendar in case task has due date
+    } catch (error) {
+      console.error('Failed to create task:', error)
+      throw error // Let TaskPanel handle error display
+    }
+  }, [createTask, refetchTasks, refetchEvents])
+
   const handleEventsChange = useCallback(async () => {
     await refetchEvents()
     await refetchTasks()
@@ -65,6 +76,8 @@ function App() {
       <div className="app-content">
         <TaskPanel
           tasks={filteredTasks}
+          projects={projects}
+          sections={sections}
           loading={tasksLoading}
           error={tasksError}
           showAllDayTasks={showAllDayTasks}
@@ -72,6 +85,7 @@ function App() {
           showCompletedTasks={showCompletedTasks}
           setShowCompletedTasks={setShowCompletedTasks}
           onTaskUnschedule={handleTaskUnschedule}
+          onCreateTask={handleTaskCreate}
         />
 
         <Calendar
