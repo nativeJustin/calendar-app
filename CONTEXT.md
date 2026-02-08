@@ -13,15 +13,23 @@ This is a **Master Calendar** web application that integrates multiple Google Ca
 ## What We Built
 
 ### Core Functionality
-1. **Multi-Account Google Calendar Integration** - View events from multiple Google accounts in one unified calendar
-2. **Todoist Task Management** - View, filter, and schedule Todoist tasks
+1. **Multi-Account Google Calendar Integration** - View and create events from multiple Google accounts in one unified calendar
+2. **Todoist Task Management** - View, filter, create, and schedule Todoist tasks
 3. **Drag-and-Drop Time Blocking** - Schedule tasks by dragging them onto the calendar
 4. **Schedule Inbox** - A task panel where unscheduled tasks live and can be organized
-5. **Mobile-Responsive Design** - Custom horizontal week view for mobile devices
+5. **Calendar Event Creation** - Create new Google Calendar events directly from the UI
+6. **Mobile-Responsive Design** - Custom horizontal week view for mobile devices
 
 ### Key Features
 
 #### Calendar Features
+- **Event Creation**: Create new Google Calendar events directly from the UI
+  - Collapsible "+ Create Event" form in Calendar header
+  - Fields: Title (required), Start Time (required), End Time (optional), Description (optional)
+  - Auto-detects browser timezone using Intl.DateTimeFormat API
+  - Auto-calculates end time (1 hour duration) if not provided
+  - Multi-account support: Select which account when multiple connected
+  - Inline validation and error handling
 - **Multiple Views**: Week, Day, Month views on desktop
 - **Zoom Controls**: Dynamic time range adjustment with 3 presets:
   - **Full Day**: 00:00 - 24:00 (entire 24 hours, 1-hour slots)
@@ -446,6 +454,7 @@ calendar-app/
 ### What Works ✅
 - **Google Calendar multi-account integration** - Fully functional, OAuth flow working
 - **Todoist API integration** - Connected and syncing
+- **Calendar event creation** - Create new Google Calendar events directly from UI with title, start/end time, description, timezone auto-detection
 - **Task creation** - Create new Todoist tasks directly from UI with title, due date, priority, project, and section
 - **Drag-and-drop scheduling** - From inbox to calendar works perfectly
 - **Drag-and-drop rescheduling** - Move tasks on calendar to different times
@@ -475,6 +484,11 @@ calendar-app/
   - Status: Fixed and tested, drag-and-drop now works correctly
 
 ### Potential Improvements
+- Add location field to calendar event creation
+- Support all-day events (checkbox toggle)
+- Add recurring event patterns
+- Allow selecting specific calendar (not just primary)
+- Add attendees/invitees field to events
 - Add task duration editing
 - Add task description/notes field to creation form
 - Add label/tag support to task creation
@@ -483,11 +497,13 @@ calendar-app/
 - User authentication
 - Dark mode
 - Desktop notifications
-- Keyboard shortcuts (e.g., Ctrl+K to open task creation)
+- Keyboard shortcuts (e.g., Ctrl+K to open task/event creation)
 - Batch operations (schedule multiple tasks at once)
 - Calendar color customization
 - Export functionality
 - Task templates for recurring patterns
+- Event templates for common events
+- Drag-to-create events on calendar
 
 ## Development Workflow
 
@@ -623,6 +639,23 @@ Response: {
     }
   ]
 }
+```
+
+**Create Event**
+```
+POST /api/calendar/events
+Body: {
+  accountId: "uuid",
+  title: "Meeting Title",
+  startTime: "2026-02-10T15:00:00Z",
+  endTime: "2026-02-10T16:00:00Z",
+  timeZone: "America/Los_Angeles",
+  description?: "Optional description"
+}
+Response: { event: {...} }
+Errors:
+  400: Missing required fields or end time before start time
+  500: Server error or Google API error
 ```
 
 ### Todoist API
@@ -952,4 +985,71 @@ If you want to deploy this for multiple users:
     - Smart filtering improves UX: only show relevant sections for selected project
     - Form auto-close provides cleaner workflow than keeping form open
     - Following existing patterns (SetupGuide's collapsible section) ensures UI consistency
+
+
+**Session 7** (2026-02-08):
+- ✅ **Calendar Event Creation Feature** - Create Google Calendar events directly from UI
+  - **Context**: Previously, users had to switch to Google Calendar to create events, breaking the workflow. This feature completes the core calendar management capabilities.
+  - **Backend Implementation**:
+    - Added `createEvent(accountId, eventData)` method to googleCalendar.js
+    - Follows same OAuth2 pattern as existing `updateEventTime()` method
+    - Includes token refresh handler for automatic token renewal
+    - Added POST `/api/calendar/events` endpoint with comprehensive validation
+    - Validates: accountId, title (required, non-empty), startTime, endTime, timeZone
+    - Server-side validation: end time must be after start time
+    - Returns 400 for validation errors, 500 for server errors
+  - **Frontend Implementation**:
+    - Created `EventCreationForm.jsx` component with collapsible UI
+    - Created `EventCreationForm.css` with purple gradient styling (distinct from task creation's green)
+    - Added `createEvent()` function to useCalendarEvents hook
+    - Added `handleEventCreate()` handler in App.jsx
+    - Updated Calendar.jsx to include EventCreationForm in header (above zoom controls)
+    - Added `.calendar-header` styling in Calendar.css
+    - App.jsx now fetches Google accounts on mount for multi-account support
+  - **Key Features**:
+    - **Collapsible Form**: "+ Create Event" button with purple gradient, expands to show form
+    - **Auto-detect Timezone**: Uses `Intl.DateTimeFormat().resolvedOptions().timeZone` to detect browser timezone
+    - **Auto-calculate End Time**: Defaults to 1 hour after start time if not provided
+    - **HTML5 datetime-local inputs**: Native browser date/time pickers for excellent UX
+    - **Multi-account Support**: Shows account selector dropdown when 2+ Google accounts connected
+    - **Client-side Validation**: Title required, start time required, end > start
+    - **Server-side Validation**: All required fields, proper data types, business rules
+    - **Error Handling**: Inline error messages in form
+    - **Auto-refresh**: Calendar updates immediately after event creation
+    - **Form Auto-close**: Closes and resets after successful creation
+  - **Form Fields**:
+    - Title (required) - text input with autofocus
+    - Start Time (required) - datetime-local input
+    - End Time (optional) - datetime-local input, defaults to start + 1 hour
+    - Description (optional) - textarea with 3 rows
+    - Account (conditional) - dropdown shown only when multiple accounts connected
+  - **Data Flow**: Form → handleEventCreate → createEvent (hook) → POST /api/calendar/events → googleCalendarService.createEvent → Google Calendar API → refetchEvents → UI updates
+  - **Design Decisions**:
+    - Form location: Calendar header (user preference, keeps event actions near calendar)
+    - Timezone: Auto-detect browser timezone (user preference, simpler than manual selection)
+    - Time input: HTML5 datetime-local (user preference, native UX, no parsing needed)
+    - End time: Auto-calculate 1 hour duration (matches Google Calendar default)
+    - Creates in 'primary' calendar (keeps implementation simple)
+  - **Testing**:
+    - ✅ Client build succeeded with no syntax errors
+    - ✅ Server code passed syntax validation
+    - ✅ Manual testing with single Google account successful
+    - ✅ Event creation works end-to-end
+    - ✅ Events appear in both Master Calendar and Google Calendar web UI
+    - ✅ Validation works (empty title, invalid time range)
+    - ✅ Auto-timezone detection works correctly
+    - ✅ Auto-end-time calculation works (defaults to 1 hour)
+    - ⚠️ Multi-account selector not tested (only 1 account connected)
+  - **Git Workflow**:
+    - Created feature branch: `feature/create-calendar-events`
+    - Committed with detailed message including Co-Authored-By attribution
+    - Pushed to GitHub and created PR #1
+    - PR merged into main successfully
+  - Status: ✅ **FULLY WORKING** - Calendar event creation integrated seamlessly
+  - **Key Learnings**:
+    - Mirroring existing patterns (task creation) ensures consistency and faster implementation
+    - Auto-detecting timezone with `Intl.DateTimeFormat()` provides great UX without complexity
+    - HTML5 datetime-local inputs provide excellent native UX on all modern browsers
+    - Planning phase with user input (form location, timezone handling) prevented rework
+    - Following same data flow pattern (Component → Handler → Hook → API → Service) makes codebase maintainable
 
