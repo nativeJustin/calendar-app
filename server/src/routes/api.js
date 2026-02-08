@@ -76,6 +76,63 @@ router.get('/todoist/tasks', async (req, res) => {
   }
 });
 
+// Get Todoist projects
+router.get('/todoist/projects', async (req, res) => {
+  try {
+    const projects = await todoistService.getProjects();
+    res.json({ projects });
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    res.status(500).json({
+      error: 'Failed to fetch projects',
+      message: error.message
+    });
+  }
+});
+
+// Get Todoist sections
+router.get('/todoist/sections', async (req, res) => {
+  try {
+    const sections = await todoistService.getSections();
+    res.json({ sections });
+  } catch (error) {
+    console.error('Error fetching sections:', error);
+    res.status(500).json({
+      error: 'Failed to fetch sections',
+      message: error.message
+    });
+  }
+});
+
+// Create new Todoist task
+router.post('/todoist/tasks', async (req, res) => {
+  try {
+    const { content, due_string, priority, project_id, section_id } = req.body;
+
+    // Validate required fields
+    if (!content || content.trim() === '') {
+      return res.status(400).json({ error: 'Task content is required' });
+    }
+
+    const taskData = { content: content.trim() };
+
+    // Add optional fields if provided
+    if (due_string) taskData.due_string = due_string;
+    if (priority) taskData.priority = priority;
+    if (project_id) taskData.project_id = project_id;
+    if (section_id) taskData.section_id = section_id;
+
+    const newTask = await todoistService.createTask(taskData);
+    res.json({ task: newTask });
+  } catch (error) {
+    console.error('Error creating task:', error);
+    res.status(500).json({
+      error: 'Failed to create task',
+      message: error.response?.data?.message || error.message
+    });
+  }
+});
+
 // Update task due date/time
 router.post('/todoist/tasks/:id/schedule', async (req, res) => {
   try {

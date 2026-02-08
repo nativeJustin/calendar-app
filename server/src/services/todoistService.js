@@ -90,6 +90,92 @@ class TodoistService {
       throw error;
     }
   }
+
+  async getProjects() {
+    try {
+      const apiToken = this.getApiToken();
+      if (!apiToken) {
+        throw new Error('Todoist API token not configured');
+      }
+
+      const response = await axios.get(`${this.baseUrl}/projects`, {
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching projects:', error.message);
+      throw error;
+    }
+  }
+
+  async getSections() {
+    try {
+      const apiToken = this.getApiToken();
+      if (!apiToken) {
+        throw new Error('Todoist API token not configured');
+      }
+
+      const response = await axios.get(`${this.baseUrl}/sections`, {
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching sections:', error.message);
+      throw error;
+    }
+  }
+
+  async createTask(taskData) {
+    try {
+      const apiToken = this.getApiToken();
+      if (!apiToken) {
+        throw new Error('Todoist API token not configured');
+      }
+
+      // Build payload with required and optional fields
+      const payload = {
+        content: taskData.content, // required
+      };
+
+      if (taskData.due_string) {
+        payload.due_string = taskData.due_string;
+      }
+
+      if (taskData.priority && taskData.priority >= 1 && taskData.priority <= 4) {
+        payload.priority = taskData.priority;
+      }
+
+      if (taskData.project_id) {
+        payload.project_id = taskData.project_id;
+      }
+
+      if (taskData.section_id) {
+        payload.section_id = taskData.section_id;
+      }
+
+      const response = await axios.post(
+        `${this.baseUrl}/tasks`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${apiToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Error creating task:', error.response?.data || error.message);
+      throw error;
+    }
+  }
 }
 
 export default new TodoistService();
